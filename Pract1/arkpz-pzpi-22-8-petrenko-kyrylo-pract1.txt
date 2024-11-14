@@ -1,1 +1,230 @@
+Міністерство освіти і науки України
+Харківський національний університет радіоелектроніки
+
+
+Кафедра «Програмної Інженерії»
+
+
+
+
+
+ЗВІТ
+з практичного завдання № 1
+з дисципліни «Аналіз та рефакторинг коду»
+
+
+
+
+
+
+
+
+
+
+Виконав: 
+ст. гр. ПЗПІ-22-8
+Петренко К. С.
+Перевірив: 
+Ст. викладач каф. ПІ 
+Сокорчук І. П.
+
+
+
+
+
+
+
+
+
+Харків 2024
+
+ Мета: ознайомитись із основними рекомендаціями щодо написання чистого, ефективного та підтримуваного коду для мови програмування Swift, підготувати презентацію.
+
+ Тема: Правила оформлення програмного коду для мови програмування Swift
+ХІД РОБОТИ
+Основні рекомендації щодо написання коду на Swift
+1. Використовувати опціонали для безпечної роботи з відсутніми 
+значеннями
+Опис: Опціонали дозволяють обробляти відсутність значень безпечно, що знижує ризик неочікуваних помилок.
+
+1 // Поганий приклад
+2 func findMedication(name: String) -> String {
+3     return medicationDatabase[name] ?? "Medication not found"
+4 }
+5 
+6 // Гарний приклад
+7 func findMedication(name: String) -> String? {
+8     guard let medication = medicationDatabase[name] else {
+9         return nil
+10     }
+11     return medication
+12 }
+
+2. Використовувати let замість var для незмінних даних
+Опис: Ключове слово let захищає від випадкової зміни даних, що робить код більш стабільним.
+
+1 // Поганий приклад
+2 var stockQuantity = 50
+3 
+4 // Гарний приклад
+5 let initialStockQuantity = 50
+
+3. Використовувати guard для раннього виходу
+Опис: guard дозволяє позбутися вкладених умов, роблячи код чистішим.
+
+1 // Поганий приклад
+2 func processOrder(quantity: Int?) {
+3     if let qty = quantity {
+4         if qty > 0 {
+5             print("Processing order of \(qty) items")
+6         }
+7     }
+8 }
+9 
+10 // Гарний приклад
+11 func processOrder(quantity: Int?) {
+12     guard let qty = quantity, qty > 0 else {
+13         print("Invalid quantity")
+14         return
+15     }
+16     print("Processing order of \(qty) items")
+17 }
+
+4. Використовувати протоколи для декомпозиції функціоналу
+Опис: Протоколи дозволяють зручно структурувати код і розділяти відповідальність між компонентами.
+
+1 // Поганий приклад
+2 class PharmacyService {
+3     func addMedication(_ medication: Medication) { /* код */ }
+4     func processOrder(_ order: Order) { /* код */ }
+5 }
+6 
+7 // Гарний приклад
+8 protocol MedicationManaging {
+9     func addMedication(_ medication: Medication)
+10 }
+11 
+12 protocol OrderProcessing {
+13     func processOrder(_ order: Order)
+14 }
+15 
+16 class PharmacyService: MedicationManaging, OrderProcessing {
+17     func addMedication(_ medication: Medication) { /* код */ }
+18     func processOrder(_ order: Order) { /* код */ }
+19 }
+
+5. Використовуйте map, filter, reduce для колекцій
+Опис: Ці функції спрощують роботу з колекціями і роблять код лаконічнішим.
+
+1 // Поганий приклад
+2 var availableMedications: [String] = []
+3 for medication in medications {
+4     if medication.isAvailable {
+5         availableMedications.append(medication.name)
+6     }
+7 }
+8 
+9 // Гарний приклад
+10 let availableMedications = medications.filter { $0.isAvailable }.map { $0.name }
+
+6. Використовуйте lazy для відкладеної ініціалізації
+Опис: Відкладена ініціалізація дозволяє економити пам'ять, коли об'єкт створюється лише при першому зверненні до нього.
+
+1 // Поганий приклад
+2 let inventoryData = fetchInventoryData()
+3 
+4 // Гарний приклад
+5 lazy var inventoryData: [Medication] = fetchInventoryData()
+
+7. Уникайте використання Any та AnyObject
+Опис: Конкретні типи роблять код більш читабельним і безпечним, уникаючи потреби в перевірках типу.
+
+1 // Поганий приклад
+2 var itemList: [Any] = ["Paracetamol", 50, 10.5]
+3 
+4 // Гарний приклад
+5 struct MedicationItem {
+6     var name: String
+7     var quantity: Int
+8     var price: Double
+9 }
+10 
+11 var itemList: [MedicationItem] = [MedicationItem(name: "Paracetamol", quantity: 50, price: 10.5)]
+
+Висновки:
+     Під час виконання практичного завдання я ознайомився із основними рекомендаціями щодо написання чистого, ефективного та підтримуваного коду для мови програмування Swift.
+     Посилання на відеозапис: https://youtu.be/7fXpv4fI3B8
+
+
+
+
+
+
+
+
+
+
+
+
+Список використаних джерел:
+1. Galaktica. Мова програмування Swift. URL: https://galaktica.io/blog/mova-programuvannya-swift/ (дата звернення: 05.11.2024).
+2. Підручник Swift українською. Основи мови програмування Swift. URL: https://book.swift.org.ua/book/1_language_guide/0_the_basics (дата звернення: 05.11.2024).
+3. Swift.org. Swift API Design Guidelines. Swift. URL: https://swift.org/documentation/api-design-guidelines/ (дата звернення: 05.11.2024).
+4. Apple Developer. Swift Programming Language. URL: https://developer.apple.com/swift/ (дата звернення: 05.11.2024).
+5. Wikipedia. Swift (programming language). URL: https://en.wikipedia.org/wiki/Swift_(programming_language) (дата звернення: 05.11.2024).
+6. Swift Language on GitHub. Swift Source Code. URL: https://github.com/swiftlang/swift (дата звернення: 05.11.2024).
+
+
+
+
+
+
+
+
+
+Додаток А
+
+Рисунок А.1 – Титульний слайд презентації
+
+
+Рисунок А.2 – Зміст презентації
+
+
+Рисунок А.3 – Визначення Swift
+
+
+Рисунок А.4 – Короткий опис Swift
+
+
+Рисунок А.5 – Історія створення Swift
+
+
+Рисунок А.6 – Рекомендація щодо використання опціоналів
+
+
+Рисунок А.7 – Рекомендація використовувати оператор let замість var
+
+
+Рисунок А.8 – Рекомендація використовувати протоколи декомпозиції
+
+
+Рисунок А.9 – Рекомендація використовувати guard
+
+
+Рисунок А.10 – Рекомендація використовувати map, filter, reduce для колекцій
+
+
+Рисунок А.11 – Рекомендація використовувати lazy для відкладеної ініціалізації
+
+
+Рисунок А.12 – Рекомендація уникати Any та AnyObject, де це можливо
+
+
+Рисунок А.13 – Висновки
+
+
+Рисунок А.14 – Список використаних джерел
+
+
+Рисунок А.15 – Завершальний слайд
 
