@@ -1,1 +1,292 @@
+Міністерство освіти і науки України
+Харківський національний університет радіоелектроніки
 
+
+
+
+
+
+
+
+Лабораторна робота №2
+Дисципліна: «Аналіз та рефакторинг коду»
+
+
+
+
+
+
+
+Виконав: 
+студент групи
+ПЗПІ-22-8
+Петренко К. С.
+Перевірив: 
+Ст. викладач каф. ПІ 
+Сокорчук І. П.
+
+
+
+
+
+Харків 2024
+     ТЕМА: розробка серверної частини, бази даних та прикладного програмного інтерфейсу для програмної системи для автоматизації процесів аптеки.
+     МЕТА: отримання навичок з проектування серверної частини програмної системи з використанням діаграми прецедентів, ER-діаграми та діаграми структури даних.
+
+Хід роботи
+
+     1. Розробка UML діаграми прецедентів.
+     Було розроблено UML діаграму прецедентів відповідно до обраної теми та поставлених функціональних вимог. Вона показує методи взаємодії 3 типів користувачів з програмною системою. Також показано взаємодію IoT пристрою.
+
+
+Рисунок 1 – Діаграма Use-Case програмної системи
+
+     2. Розробка ER діаграми
+     Було розроблено ER діаграму відповідно до обраної теми та поставлених функціональних вимог. Діаграма складається з 7 сутностей, взаємодії між ними та їх атрибутів.
+
+
+Рисунок 2 – Діаграма Сутність-Зв’язок програмної системи
+
+     3. Розробка бази даних для програмної системи
+     Було розроблено відповідну до функціональних потреб та предметної галузі програмного продукту базу даних з використанням СКБД MongoDB. Схему бази даних наведено на рис. 3. База даних зберігається на хмарному провайдері AWS та за допомогою Mongo Atlas. Для взаємодії з базою даних використовується Mongoose Object Data Modelling та вбудовані методи взаємодії з базою даних Mongo. Приклад використання наведено у додатку А.
+
+
+Рисунок 3 – Схема бази даних програмної системи
+
+     4. Розробка API 
+     Було розроблено REST API для взаємодії серверної частини з клієнтами. API складається з 3 маршрутів, відповідно до частин системи, з якими взаємодіє клієнт.
+     
+     Таблиця 1 – REST API програмної системи.
+HTTP Метод
+Ендпоінт
+Дозволені Ролі
+Опис
+Маршрути Користувачів
+GET
+/user/
+автентифікований
+Отримати профіль користувача
+POST
+/user/reg/
+неавтентифікований
+Зареєструвати нового користувача
+POST
+/user/login/
+неавтентифікований
+Авторизація користувача
+POST
+/user/purchase/
+admin, pharmacist
+Зареєструвати покупку у системі
+Маршрути Інвентаризації
+GET
+/inventory/medications/
+admin, pharmacist
+Отримати список усіх медикаментів з можливістю обрання конкретної аптеки
+POST
+/inventory/medications/
+admin, pharmacist
+Додати медикамент в інвентар конкретної аптеки
+PUT
+/inventory/medications/quantity/
+admin, pharmacist
+Оновити кількість медикаментів в інвентарі
+GET
+/inventory/medications/low-inventory/
+admin, pharmacist
+Отримати медикаменти з низьким рівнем запасів
+GET
+/inventory/storage-conditions/:pharmacyId/
+admin, pharmacist
+Перевірити умови зберігання в аптеці за pharmacyId, використовуючи дані сенсорів IoT
+GET
+/inventory/medications/restock-recommendations/
+admin
+Згенерувати рекомендації щодо поповнення запасів  якщо їх кількість нижча за певний поріг або в них майже закінчився срок придатності
+GET
+/inventory/statistics/
+admin
+Отримати статистику щодо запасів, включаючи загальну кількість
+медикаментів, середню ціну для кожного медикаменту та кількість проданих у середньому за місяць
+GET
+/inventory/transactions/:pharmacyId/
+admin, pharmacist
+Отримати історію виданих препаратів за вказаний час та за pharmacyId
+Маршрути Адміністратора
+GET
+/admin/iot-devices/
+admin
+Отримати список усіх IoT-пристроїв
+POST
+/admin/iot-devices/
+admin
+Додати новий IoT-пристрій
+PATCH
+/admin/iot-devices/:deviceId/
+admin
+Оновити IoT-пристрій за deviceId
+DELETE
+/admin/iot-devices/:deviceId/
+admin
+Видалити IoT-пристрій за deviceId
+GET
+/admin/pharmacies/
+admin
+Отримати список усіх аптек
+POST
+/admin/pharmacies/
+admin
+Додати нову аптеку
+PATCH
+/admin/pharmacies/:pharmacyId/
+admin
+Оновити аптеку за pharmacyId
+DELETE
+/admin/pharmacies/:pharmacyId/
+admin
+Видалити аптеку за pharmacyId
+GET
+/admin/users/
+admin
+Отримати список усіх користувачів
+POST
+/admin/users/
+admin
+Додати нового користувача
+PATCH
+/admin/users/:userId/
+admin
+Оновити дані користувача за userId
+DELETE
+/admin/users/:userId/
+admin
+Видалити дані користувача за userId
+POST
+/admin/medications/
+admin
+Додати новий медикамент
+GET
+/admin/medications/
+admin
+Отримати список усіх медикаментів
+PATCH
+/admin/medications/:medicationId/
+admin
+Оновити медикамент за medicationId
+DELETE
+/admin/medications/:medicationId/
+admin
+Видалити медикамент за medicationId
+POST
+/admin/iot-devices/:deviceId/report/
+admin
+Отримати дані від IoT-пристрою 
+
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     5. Розробка програмної реалізації створеного API та функцій роботи з БД.
+     Було створено серверну частину проекту відповідно до REST API. Сервер працює на мові програмування JavaScript та використанням фреймворку ExpressJS. Також було використано бібліотеку bcryptjs для шифрування паролю користувача та jsonwebtoken для створення токенів для ідентифікації дій користувачів. Приклад використання маршрутизації Express наведено у додатку Б.
+     ВИСНОВКИ: У ході виконання лабораторної роботи були покращені навички з проектування серверної частини програмної системи, розробки діаграм, проектування бази даних. Була розроблена програмна реалізація серверної частини та бази даних програмної системи. При розробці програми дотримувались вимоги до чистого коду та Code Convention мови програмування JavaScript.
+     
+
+
+
+
+ДОДАТОК А
+Приклад використання ODM у функції
+
+  1 async generateRestockRecommendations(req, res) {
+  2   try {
+  3        const threshold = req.query.threshold || 10;
+  4
+  5        const currentTime = new Date();
+  6
+  7        const recommendations = await MedicationInPharmacy.find({
+  8            $or: [
+  9                { quantity: { $lt: threshold } },
+10                {
+11                    $expr: {
+12                        $lt: [
+13                            { $divide: [
+14                               { $subtract: [currentTime, "$manufactureDate"] },
+15                                { $multiply: ["$expirationTime", 86400000] } // перетворюємо термін придатності з днів у мілісекунди
+16                                ] },
+17                            0.95
+18                        ]
+19                    }
+20                }
+21            ]
+22        })
+23            .populate('medication')
+24            .populate('pharmacy');
+25
+26        const result = recommendations.map(item => {
+27            const timeElapsed = (currentTime - item.manufactureDate) / (item.medication.expirationTime * 86400000);
+28            const isNearExpiration = timeElapsed >= 0.95;
+29            const reason = isNearExpiration ? 'Наближення до закінчення терміну придатності' : 'Низький рівень запасів';
+30
+31            return {
+32                pharmacy: item.pharmacy.name,
+33                medication: item.medication.name,
+34                currentQuantity: item.quantity,
+35                manufactureDate: item.manufactureDate,
+36                expirationTime: item.medication.expirationTime,
+37                recommendedQuantity: threshold * 2,
+38                reason
+39            };
+40        });
+41
+42        res.status(200).json(result);
+43    } catch (error) {
+44        res.status(500).json({ message: 'Помилка при створенні рекомендацій для поповнення', error });
+45    }
+46}
+
+
+
+ДОДАТОК Б
+Приклад обробки запитів клієнта
+
+  1 const Router = require('express');
+  2 const router = new Router();
+  3 const AuthController = require('../controllers/userController')
+  4 const {authenticateToken, authorizeRole} = require("../utilities/authMiddleware");
+  5 
+  6 const adminOrPharmacist = ['admin', 'pharmacist'];
+  7 
+  8 router.get("/", authenticateToken, AuthController.getProfile);
+  9 router.post("/reg/", AuthController.registration);
+10 router.post("/login/", AuthController.login);
+11 router.post("/purchase/", authenticateToken, authorizeRole(adminOrPharmacist),       AuthController.makePurchase);
+12
+13 module.exports = router;
