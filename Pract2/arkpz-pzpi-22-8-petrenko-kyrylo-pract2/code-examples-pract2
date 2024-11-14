@@ -1,0 +1,108 @@
+//Метод "Заміна параметра методом"
+// До рефакторингу
+public double GetPrice(){
+  var basePrice = quantity * itemPrice;
+  var discountLevel = 1;
+  if (quiantity > 100)
+    discountLevel = 2;
+  var finalPrice = GetDiscountedPrice(basePrice, discountLevel);
+  return finalPrice;
+}
+
+private double GetDiscountedPrice(double basePrice, int discountLevel){
+  if (discountLevel == 2)
+    return basePrice * 0.1;
+  return basePrice * 0.05;
+}
+
+// Після рефакторингу
+public double GetPrice(){
+    if (DiscountLevel == 2)
+        return BasePrice * 0.1;
+    return BasePrice * 0.05;
+}
+
+private double BasePrice{
+    get{
+        return quantity * itemPrice;
+    }
+}
+
+private int DiscountLevel{
+    get{
+        if (quantity > 100)
+            return 2;
+        return 1;
+    }
+}
+
+
+//Метод "Заміна кода помилки винятком"
+// До рефакторингу
+private static int parseInt(String s) {
+    int num = 0;
+    for (int i = 0; i < s.length(); i++) {
+        char c = s.charAt(i);
+        if (c >= '0' && c <= '9') {
+            num = num * 10 + (c - '0');
+        } else {
+            return -1;
+        }
+    }
+    return num;
+}
+
+
+// Після рефакторингу
+private static int parseInt(String s) {
+    int num = 0;
+    for (int i = 0; i < s.length(); i++) {
+      char c = s.charAt(i);
+      if (c >= '0' && c <= '9') {
+        num = num * 10 + (c - '0');
+      } else {
+        throw new IllegalArgumentException("Неправильний формат числа: " + s);
+      }
+    }
+    return num;
+  }
+
+
+  // Метод "Видалення параметра"
+  // До рефакторингу
+  public static String convert1(String input) {
+    StringBuilder output = new StringBuilder();
+    String[] rows = input.split("\n");
+    output.append("LastName;Email").append("\n");
+    for (int i = 1; i < rows.length; i++) {
+      String[] columns = rows[i].split(";");
+      String[] fullName = columns[1].split(" ");
+      String lastName = fullName[fullName.length - 1];
+      String email = columns[2];
+      output.append(lastName).append(";").append(email);
+      if (i < rows.length - 1) {
+        output.append("\n");
+      }
+    }
+    return output.toString();
+  }
+
+
+// Після рефакторингу
+public static String convert1() {
+    String input = Utils.getContent(PATH); // отримуємо вміст без параметра
+    StringBuilder output = new StringBuilder();
+    String[] rows = input.split("\n");
+    output.append("LastName;Email").append("\n");
+    for (int i = 1; i < rows.length; i++) {
+        String[] columns = rows[i].split(";");
+        String[] fullName = columns[1].split(" ");
+        String lastName = fullName[fullName.length - 1];
+        String email = columns[2];
+        output.append(lastName).append(";").append(email);
+        if (i < rows.length - 1) {
+            output.append("\n");
+        }
+    }
+    return output.toString();
+}
