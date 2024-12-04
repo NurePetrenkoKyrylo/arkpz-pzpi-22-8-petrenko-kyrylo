@@ -5,6 +5,7 @@ const Medication = require('../models/Medication');
 const MedicationInPharmacy = require('../models/MedicationInPharmacy');
 const Transaction = require('../models/Transaction');
 const User = require('../models/User');
+const bcrypt = require("bcryptjs")
 
 class AdminController {
 
@@ -15,6 +16,24 @@ class AdminController {
             res.status(200).json(devices);
         } catch (error) {
             res.status(500).json({message: 'Помилка при отриманні IoT пристроїв', error});
+        }
+    }
+    async getDeviceConfig(req, res) {
+        try {
+            const { deviceId } = req.params;
+
+            const device = await IoTDevice.findById(deviceId);
+
+            if (!device) {
+                return res.status(404).json({ message: 'IoT пристрій не знайдено' });
+            }
+
+            res.status(200).json({
+                measurementInterval: device.measurementInterval,
+                normalRange: device.normalRange,
+            });
+        } catch (error) {
+            res.status(500).json({ message: 'Помилка при отриманні конфігурації пристрою', error: error.message });
         }
     }
 
@@ -129,6 +148,7 @@ class AdminController {
             await newUser.save();
             res.status(201).json({message: 'Користувача додано успішно', user: newUser});
         } catch (error) {
+            console.log(error)
             res.status(500).json({message: 'Помилка при додаванні користувача', error});
         }
     }
@@ -214,7 +234,8 @@ class AdminController {
     async receiveIoTData(req, res) {
         try {
             const {deviceId} = req.params;
-            const {temperature, humidity} = req.body;
+            const {Temperature, Humidity} = req.body;
+            console.log(req.body)
 
             const device = await IoTDevice.findById(deviceId).populate('pharmacy');
             if (!device) {
@@ -225,8 +246,8 @@ class AdminController {
                 pharmacy: device.pharmacy,
                 iotDevice: device._id,
                 date: new Date(),
-                temperature,
-                humidity
+                temperature:Temperature,
+                humidity:Humidity
             });
             await storageConditionEntry.save();
 
@@ -239,6 +260,7 @@ class AdminController {
                 normalRange: device.normalRange
             });
         } catch (error) {
+            console.log(error.message)
             res.status(500).json({message: 'Помилка при обробці даних IoT пристрою', error: error.message});
         }
     }
@@ -255,7 +277,7 @@ class AdminController {
             res.status(200).json({ message: 'Всі дані успішно видалено з бази даних' });
 
         } catch (error) {
-            res.status(500).json({message: 'Помилка при обробці даних IoT пристрою', error: error.message});
+            res.status(500).json({message: 'Помилка при видаленні даних з бази даних', error: error.message});
         }
     }
 }

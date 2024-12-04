@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const AdminController = require('../controllers/AdminController');
+const AdminController = require('../controllers/adminController');
 const { authenticateToken, authorizeRole } = require('../utilities/authMiddleware');
 
 const adminOnly = [authenticateToken, authorizeRole(['admin'])];
@@ -10,6 +10,7 @@ router.get('/iot-devices/', adminOnly, AdminController.getAllIoTDevices);
 router.post('/iot-devices/', adminOnly, AdminController.addIoTDevice);
 router.patch('/iot-devices/:deviceId/', adminOnly, AdminController.updateIoTDevice);
 router.delete('/iot-devices/:deviceId/', adminOnly, AdminController.deleteIoTDevice);
+router.get('/iot-devices/:deviceId/config/', authenticateToken, AdminController.getDeviceConfig);
 
 // Маршрути для управління аптеками
 router.get('/pharmacies/', adminOnly, AdminController.getAllPharmacies);

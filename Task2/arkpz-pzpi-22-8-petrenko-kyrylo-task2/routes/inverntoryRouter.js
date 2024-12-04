@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const InventoryController = require('../controllers/InventoryController');
+const InventoryController = require('../controllers/inventoryController');
 const { authenticateToken, authorizeRole } = require('../utilities/authMiddleware');
 
 const adminOrPharmacist =[authenticateToken, authorizeRole( ['admin', 'pharmacist'])];
