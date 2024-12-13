@@ -116,7 +116,17 @@ class AdminController {
     async deletePharmacy(req, res) {
         try {
             const {pharmacyId} = req.params;
-            await Pharmacy.findByIdAndDelete(pharmacyId);
+            const deletedPharmacy = await Pharmacy.findByIdAndDelete(pharmacyId);
+            if (!deletedPharmacy) {
+                return res.status(404).json({ message: 'Аптеку не знайдено' });
+            }
+            await MedicationInPharmacy.deleteMany({ pharmacy: pharmacyId });
+            await MedicationInPharmacy.deleteMany({
+                $or: [
+                    { pharmacy: { $nin: await Pharmacy.distinct('_id') } },
+                    { medication: { $nin: await Medication.distinct('_id') } }
+                ]
+            });
             res.status(200).json({message: 'Аптеку видалено успішно'});
         } catch (error) {
             res.status(500).json({message: 'Помилка при видаленні аптеки', error});
@@ -225,6 +235,13 @@ class AdminController {
             if (!deletedMedication) {
                 return res.status(404).json({ message: 'Медикамент не знайдено' });
             }
+            await MedicationInPharmacy.deleteMany({ medication: medicationId });
+            await MedicationInPharmacy.deleteMany({
+                $or: [
+                    { pharmacy: { $nin: await Pharmacy.distinct('_id') } },
+                    { medication: { $nin: await Medication.distinct('_id') } }
+                ]
+            });
             res.status(200).json({ message: 'Медикамент видалено успішно' });
         } catch (error) {
             res.status(500).json({ message: 'Помилка при видаленні медикаменту', error: error.message });

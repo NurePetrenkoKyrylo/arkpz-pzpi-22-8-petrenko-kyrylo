@@ -147,23 +147,31 @@ class InventoryController {
                 .populate('pharmacy');
 
             const result = recommendations.map(item => {
-                const timeElapsed = (currentTime - item.manufactureDate) / (item.medication.expirationTime * 86400000);
+                const expirationTimeInMilliseconds = item.medication.expirationTime * 86400000;
+                const timeElapsed = (currentTime - item.manufactureDate) / expirationTimeInMilliseconds;
                 const isNearExpiration = timeElapsed >= 0.95;
-                const reason = isNearExpiration ? 'Наближення до закінчення терміну придатності' : 'Низький рівень запасів';
+                const isLowStock = item.quantity < threshold;
+
+                if (!isNearExpiration && !isLowStock) return null;
+
+                const reason = isNearExpiration
+                    ? 'Наближення до закінчення терміну придатності'
+                    : 'Низький рівень запасів';
 
                 return {
-                    pharmacy: item.pharmacy.name,
-                    medication: item.medication.name,
+                    pharmacy: item.pharmacy?.name || 'Невідома аптека',
+                    medication: item.medication?.name || 'Невідомий медикамент',
                     currentQuantity: item.quantity,
                     manufactureDate: item.manufactureDate,
-                    expirationTime: item.medication.expirationTime,
+                    expirationTime: item.medication?.expirationTime,
                     recommendedQuantity: threshold * 2,
                     reason
                 };
-            });
+            }).filter(Boolean);
 
             res.status(200).json(result);
         } catch (error) {
+            console.log(error)
             res.status(500).json({ message: 'Помилка при створенні рекомендацій для поповнення', error });
         }
     }
