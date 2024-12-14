@@ -289,3 +289,5 @@ admin
 11 router.post("/purchase/", authenticateToken, authorizeRole(adminOrPharmacist),       AuthController.makePurchase);
 12
 13 module.exports = router;
+
+Посилання на відеозапис: https://youtu.be/2MvTxQyYjOc
