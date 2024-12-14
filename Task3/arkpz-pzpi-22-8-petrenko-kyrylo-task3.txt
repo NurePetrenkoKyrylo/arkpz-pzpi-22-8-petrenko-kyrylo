@@ -1,1 +1,301 @@
+Міністерство освіти і науки України
+Харківський національний університет радіоелектроніки
+     
+     
+     
+     
+     
+     
+     
+     
+Лабораторна робота №3
+Дисципліна: «Аналіз та рефакторинг коду»
+     
+     
+     
+     
+     
+     
+     
+Виконав: 
+ст. гр. ПЗПІ-22-8
+Петренко К. С.
+     Перевірив: 
+     Ст. викладач каф. ПІ 
+     Сокорчук І. П.
+     
+     
+     
+     
+     
+Харків 2024
+
+     ТЕМА: розробка бізнес логіки та функцій адміністрування серверної частини для програмної системи для автоматизації процесів аптеки.
+     МЕТА: отримання навичок з проектування бізнес логіки та функцій адміністрування серверної частини програмної системи з використанням діаграми діяльності та діаграми взаємодії.
+     
+Хід роботи
+     
+     1. Розробити бізнес логіку серверної частини програмної системи.
+     1)	Основні функції бізнес-логіки
+     Бізнес-логіка серверної частини системи для автоматизації процесів аптеки реалізує наступні завдання:
+     * Систему моніторингу та додавання нових пристроїв IoT для контролю умов зберігання ліків (температура, вологість) з можливістю створення та управління новими IoT пристроями.
+     * Автоматизовану систему управління інвентарем та запасами медикаментів з можливістю оновлення даних про наявність ліків та точного обліку з урахуванням локального часу.
+     * Автоматизовану систему для відображення найбільш пріоритетних завдань щодо поповнення запасів і рекомендацій щодо замовлення на основі історії використання та поточних залишків.
+     * Статистичний аналіз та формування звітів по споживанню та продажу лікарських засобів, який допоможе адміністрації приймати рішення щодо поповнення, розширення складу або оптимізації процесів.
+     
+     2)	Реалізація CRUD-операцій
+     Для відповідних до безпеки сутностей бази даних були створені функції, що забезпечують операції створення, читання, оновлення та видалення записів:
+* таблиця IoTDevice: управління пристроями моніторингу умов зберігання;
+* таблиця Pharmacy: управління fgntrfvb;
+* таблиця Medications: додавання найменувань медецинських товарів;
+* таблиця User: обробка даних користувачів.
+     
+3)	API для взаємодії з клієнтами
+     Серверна частина надає REST API для виконання основних бізнес-функцій. Ось приклади маршрутів:
+* GET /admin/pharmacies/ — отримання даних про існуючі аптеки;
+* POST /admin/pharmacies/ — додавання нової аптеки;
+* PATCH /admin/pharmacies/:pharmacyId/ — оновлення інформації про аптеку;
+* DELETE /admin/pharmacies/:pharmacyId/ — видалення сповіщення.
+     Приклад коду наведений у додатку А.
+     
+     4)	Логіка обробки змін в умовах зберігання
+     У разі відхилення параметрів (температури чи рівня заповнення) від встановлених норм:
+* дані IoT-девайсів приймаються системою;
+* система записує дані у відповідну таблицю StorageConditions;
+* при наступному зверненні до системи ці дані будуть передані фармацевту.
+     Приклад коду наведений у додатку Б
+     
+     5)	Логіка отримання рекомендацій для поповнення запасів
+     У системі реалізовано отримання медикаментів, для яких потрібно поповнити запаси. Для цього необхідно надіслати запит GET /inventory/medications/restock-recommendations/. Цей запит створює рекомендації для поповнення запасів медикаментів у аптеках. Її завдання — знайти медикаменти, які потрібно поповнити через одну з двох причин:
+1. Низький рівень запасів (кількість менша за заданий поріг).
+2. Наближення до закінчення терміну придатності (залишилося менше 5% часу до закінчення).
+     Код обробки запиту наведено у додатку В.
+
+     2. Розробити функції адміністрування серверної частини програмної системи.
+     1)	Створення умов для реалізації адміністрування
+     Створено middleware authenticateToken та authorizeRole, які обмежують доступ до маршрутів залежно від ролі користувача та наявності JWT токена. В залежності від необхідності можна вказати одну або декілька ролей. Код проміжного ПЗ наведено у додатку Г.
+     
+     2)	Налаштовано додавання middleware до відповідних маршрутів
+     Додано необхідність надсилання токену JSON Web Token до запитів для реалізації функцій управління системою. CRUD операції вимагають використання акаунту адміністратора, операції взаємодії з інвентарем – акаунту фармацевта, а для перевірки покупцем свого балансу бонусів достатньо будь якої ролі.
+     
+
+Рисунок 1 – Перегляд конфіденційної історії покупок вимагає ролі адміністратора
+     3)	Підготовка акаунтів для адміністрування
+     Для моделі User реалізовано маршрути:
+     GET /admin/users/ — Отримання списку всіх користувачів (доступно лише ролі адміністратора).
+     POST /admin/users/ — Створення нового користувача (доступно лише ролі адміністратора).
+     PATCH /users/:userId/ — Оновлення даних користувача (доступно лише ролі адміністратора).
+     DELETE /users/:userId/ — Видалення користувача (доступно лише ролі адміністратора).
+     В результаті адміністратор може видати роль іншому адміністратору, або створити нового, що забезпечить реалізацію адміністрування для системи.
+
+     3. UML діаграма діяльності для серверної частини
+     Було розроблено діаграму діяльності для серверної частини. Діаграма дає розуміння роботи системи та взаємодії користувача з нею. Також вона дозволяє візуалізувати послідовність дій, визначити паралельні дії у системі. У нашій системі основні користувачі(фармацевти) можуть переглядати інформацію про наявні на складі медикаменти, отримувати рекомендації по поповненню, переглядати яких медикаментів нижче, отримувати статистику та поповнювати запаси. 
+     
+
+Рисунок 2 – Діаграма активності для сервера
+      
+     4. UML діаграма взаємодії для серверної частини.
+      Було створено діаграму взаємодії для сервера. Діаграма представляє взаємодію компонентів системи між собою та процеси, які проходять на них.
+     
+
+Рисунок 3 – Діаграма взаємодії для сервера
+     
+     Учасники:
+     1. Client (Клієнт): Відправляє запити до сервера через API;
+     2. Server (Сервер): Обробляє запити клієнта, взаємодіє з базою даних;
+     3. Database (База даних): Зберігає дані про аптеки, медикаменти, транзакції, IoT пристрої тощо.
+     Сценарій: генерація рекомендацій для поповнення запасів
+     1. Клієнт: 
+     * відправляє запит GET /restock-recommendations із порогом запасів (threshold) і токеном авторизації.
+     2. Сервер:
+     * перевіряє токен авторизації (JWT) через middleware;
+     * викликає метод контролера generateRestockRecommendations;
+     * формує запит до бази даних (MedicationInPharmacy) для отримання медикаментів із низьким рівнем запасів або майже завершеним терміном придатності.
+     3. База даних:
+     * Повертає дані про медикаменти, аптеки та пов’язані дані.
+     4. Сервер:
+     * Обчислює причини для поповнення запасів;
+     * Формує список рекомендацій;
+     * Формує відповідь із списком рекомендацій.
+     5. Клієнт:
+     * Отримує відповідь і виводить рекомендації користувачу.
+     
+     ВИСНОВКИ: У ході виконання лабораторної роботи були покращені навички з створення бізнес логіки та адміністрування системи, розробки діаграм та налаштування доступу до системи. Була розроблена відповідна функціональність для серверу та протестована вона. При розробці програми дотримувались вимоги до чистого коду та Code Convention мови програмування JavaScript.
+
+
+ДОДАТОК А
+Приклад REST API
+
+1 router.get('/pharmacies/', adminOnly, AdminController.getAllPharmacies);
+2 router.post('/pharmacies/', adminOnly, AdminController.addPharmacy);
+3 router.patch('/pharmacies/:pharmacyId/', adminOnly, AdminController.updatePharmacy);
+4 router.delete('/pharmacies/:pharmacyId/', adminOnly, AdminController.deletePharmacy);
+5 
+6 async getAllPharmacies(req, res) {
+7         try {
+8             const pharmacies = await Pharmacy.find().populate('manager');
+9             res.status(200).json(pharmacies);
+10         } catch (error) {
+11             res.status(500).json({message: 'Помилка при отриманні списку аптек', error});
+12         }
+13     }
+14 
+15     async addPharmacy(req, res) {
+16         try {
+17             const {name, address, workingHours, managerId, maxStorageSize, bonusPercent} = req.body;
+18             const newPharmacy = new Pharmacy({
+19                 name,
+20                 address,
+21                 workingHours,
+22                 manager: managerId,
+23                 maxStorageSize,
+24                 bonusPercent,
+25             });
+26             await newPharmacy.save();
+27             res.status(201).json({message: 'Аптеку додано успішно', pharmacy: newPharmacy});
+28         } catch (error) {
+29             res.status(500).json({message: 'Помилка при додаванні аптеки', error});
+30         }
+31     }
+32 
+33     async updatePharmacy(req, res) {
+34         try {
+35             const {pharmacyId} = req.params;
+36             const updatedPharmacy = await Pharmacy.findByIdAndUpdate(pharmacyId, req.body, {new: true});
+37             if (!updatedPharmacy) return res.status(404).json({message: 'Аптеку не знайдено'});
+38             res.status(200).json({message: 'Аптеку оновлено успішно', pharmacy: updatedPharmacy});
+39         } catch (error) {
+40             res.status(500).json({message: 'Помилка при оновленні аптеки', error});
+41         }
+42     }
+43 
+44     async deletePharmacy(req, res) {
+45         try {
+46             const {pharmacyId} = req.params;
+47             await Pharmacy.findByIdAndDelete(pharmacyId);
+48             res.status(200).json({message: 'Аптеку видалено успішно'});
+49         } catch (error) {
+50             res.status(500).json({message: 'Помилка при видаленні аптеки', error});
+51         }
+52   }
+
+
+ДОДАТОК Б
+Приклад обробки даних IoT- пристрою
+
+1 async receiveIoTData(req, res) {
+2         try {
+3             const {deviceId} = req.params;
+4             const {temperature, humidity} = req.body;
+5 
+6             const device = await IoTDevice.findById(deviceId).populate('pharmacy');
+7             if (!device) {
+8                 return res.status(404).json({message: 'IoT пристрій не знайдено'});
+9             }
+10 
+11             const storageConditionEntry = new StorageConditionHistory({
+12                 pharmacy: device.pharmacy,
+13                 iotDevice: device._id,
+14                 date: new Date(),
+15                 temperature,
+16                 humidity
+17             });
+18             await storageConditionEntry.save();
+19 
+20             device.status = 'active';
+21             await device.save();
+22 
+23             res.status(200).json({
+24                 message: 'Дані успішно збережено',
+25                 measurementInterval: device.measurementInterval,
+26                 normalRange: device.normalRange
+27             });
+28         } catch (error) {
+29             res.status(500).json({message: 'Помилка при обробці даних IoT пристрою', error: error.message});
+30         }
+31     }
+
+
+ДОДАТОК В
+Приклад коду логіки рекомендація для поповнення
+
+1 async generateRestockRecommendations(req, res) {
+2         try {
+3             const threshold = req.query.threshold || 10;
+4 
+5             const currentTime = new Date();
+6 
+7             const recommendations = await MedicationInPharmacy.find({
+8                 $or: [
+9                     { quantity: { $lt: threshold } },
+10                     {
+11                         $expr: {
+12                             $lt: [
+13                                 { $divide: [
+14                                     { $subtract: [currentTime, "$manufactureDate"] },
+15                                     { $multiply: ["$expirationTime", 86400000] } // перетворюємо термін придатності з днів у мілісекунди
+16                                     ] },
+17                                 0.95
+18                             ]
+19                         }
+20                     }
+21                 ]
+22             })
+23                 .populate('medication')
+24                 .populate('pharmacy');
+25 
+26             const result = recommendations.map(item => {
+27                 const timeElapsed = (currentTime - item.manufactureDate) / (item.medication.expirationTime * 86400000);
+28                 const isNearExpiration = timeElapsed >= 0.95;
+29                 const reason = isNearExpiration ? 'Наближення до закінчення терміну придатності' : 'Низький рівень запасів';
+30 
+31                 return {
+32                     pharmacy: item.pharmacy.name,
+33                     medication: item.medication.name,
+34                     currentQuantity: item.quantity,
+35                     manufactureDate: item.manufactureDate,
+36                     expirationTime: item.medication.expirationTime,
+37                     recommendedQuantity: threshold * 2,
+38                     reason
+39                 };
+40             });
+41 
+42             res.status(200).json(result);
+43         } catch (error) {
+44             res.status(500).json({ message: 'Помилка при створенні рекомендацій для поповнення', error });
+45         }
+46     }
+
+
+ДОДАТОК Г
+Приклад коду проміжного ПЗ
+
+1 function authenticateToken(req, res, next) {
+2     const authHeader = req.headers['authorization'];
+3     const token = authHeader && authHeader.split(' ')[1];
+4 
+5     if (token == null) {
+6         console.log({ message: 'No token provided' });
+7         return res.status(401).json({ message: 'No token provided' });
+8     }
+9 
+10     jwt.verify(token, secret, (err, user) => {
+11         if (err) {
+12             console.log(err);
+13             return res.status(403).json({ message: 'Invalid token', err });
+14         }
+15         req.user = user;
+16         next();
+17     });
+18 }
+19 
+20 function authorizeRole(allowedRoles) {
+21     return (req, res, next) => {
+22         if (!allowedRoles.includes(req.user.role)) {
+23             console.log({ message: 'Access denied' });
+24             return res.status(403).json({ message: 'Access denied' });
+25         }
+26         next();
+27     };
+28 }
 
