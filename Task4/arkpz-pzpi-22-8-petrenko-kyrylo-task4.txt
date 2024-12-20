@@ -1,1 +1,173 @@
+Міністерство освіти і науки України
+Харківський національний університет радіоелектроніки
+     
+     
+     
+     
+     
+     
+     
+     
+Лабораторна робота №4
+Дисципліна: «Аналіз та рефакторинг коду»
+     
+     
+     
+     
+     
+     
+     
+Виконав: 
+ст. гр. ПЗПІ-22-8
+Петренко К. С.
+     Перевірив: 
+     Ст. викладач каф. ПІ 
+     Сокорчук І. П.
+     
+     
+     
+     
+     
+Харків 2024
 
+     ТЕМА: розробка бізнес логіки та функцій адміністрування серверної частини для програмної системи для автоматизації процесів аптеки.
+     МЕТА: отримання навичок з проектування бізнес логіки та функцій адміністрування серверної частини програмної системи з використанням діаграми діяльності та діаграми взаємодії.
+     
+Хід роботи
+     
+1. Розробка програми
+     Мета проєкту: Розробити IoT пристрій, який інтегрується в систему автоматизації аптеки, забезпечуючи контроль умов зберігання медикаментів (температура, вологість). Пристрій повинен передавати дані на сервер для моніторингу та аналізу.
+     Програмне забезпечення IoT-пристрою:
+     * Написано на C# з використанням бібліотеки для HTTP-запитів.
+     * Збереження параметрів пристрою (інформація для аутентифікації) у локальному файлі для повторного використання при перезапуску.
+     * Вимірювання умов (температура, вологість) із врахуванням допустимих діапазонів та відхилення до 5%.
+     * Оновлення конфігурації (інтервал вимірювань та рамки нормальних значень) у реальному часі відповідно до відповіді від сервера.
+Серверна логіка:
+     * Сервер взаємодіє з IoT-пристроєм через REST API. Він перевіряє авторизацію пристрою, надає конфігурацію та зберігає дані.
+     * Використовується база даних MongoDB для збереження інформації про пристрої, умови та історію.
+Обробка даних:
+     * IoT-пристрій надсилає дані про температуру та вологість через визначений інтервал часу.
+     * Сервер аналізує ці дані. Якщо значення виходять за межі, система генерує сповіщення для адміністратора.
+
+2. Бізнес логіка IoT клієнта
+     Основна робота клієнта забезпечується за допомогою відповідного методу, який займається вимірюванням температури. Після отримання значень вимірювання на сервер надсилається запит. Приклад коду наведено у додатку А. Запит надсилається відповідно до отриманої від серверу конфігурації для цього пристрою.
+     
+3. Налаштування IoT клієнта
+     За налаштування клієнта відповідають дві системи: налаштування вимірювання та налаштування аутентифікації. 
+     У налаштуванні вимірювання зберігаються нормальні межі для параметрів вимірювання та інтервал вимірювань. Для синхронізації з сервером ці параметри отримуються при аутентифікації пристрою та при кожному надсиланні даних.  Приклад коду наведено у додатку Б.
+     У налаштуванні аутентифікації зберігаються параметри для входу: jwt для безпеки та id пристрою. Ці дані вводяться при першому включенні програми та після цього зберігаються локально у окремому файлі. Також можна передавати програму вже з файлом конфігурації. Приклад коду наведено у додатку В.
+     
+4. UML діаграма прецедентів IoT клієнта.
+     Додаток має орієнтованість тільки на вимірювання інформації, тому його функціонал не буде великий. Взаємодію акторів з системою наведено у діаграмі прецедентів додатка (рис. 1). За діаграмою визначено необхідну функціональність програми для вбудованої системи.
+
+Рисунок 1 – Діаграма прецедентів для IoT клієнта
+
+5. UML діаграма діяльності IoT клієнта.
+     Для розробки подальших функцій програми було розроблено UML діаграму діяльності (рис 2). Робота додатку має один шлях, який при нормальних умовах має пройти без розгалужень.
+
+Рисунок 2 - UML діаграма діяльності IoT клієнта
+
+     
+     ВИСНОВКИ: У ході виконання лабораторної роботи були покращені навички з створення бізнес логіки та налаштування IoT клієнта, розробки діаграм та програмування ПЗ для вбудованих пристроїв. Була розроблена та протестована відповідна функціональність для IoT клієнта. При розробці програми дотримувались вимоги до чистого коду та Code Convention мови програмування С#.
+     Посилання на відеозапис: https://youtu.be/Y0IKgtmUD_Q
+
+
+ДОДАТОК А
+Приклад бізнес логіки
+1 while (true)
+2 {
+3     var conditions = MeasureConditions(normalRange);
+4     Console.WriteLine($"Температура: {conditions.Temperature}");
+5     Console.WriteLine($"Вологiсть: {conditions.Humidity}");
+6     var newConfig = await SendConditions(id, jwt, conditions);
+7     if (newConfig != null && (
+8         newConfig.MeasurementInterval != measurementInterval ||
+9         newConfig.NormalRange.Temperature.Min != normalRange.Temperature.Min ||
+10         newConfig.NormalRange.Temperature.Max != normalRange.Temperature.Max ||
+11         newConfig.NormalRange.Humidity.Min != normalRange.Humidity.Min ||
+12         newConfig.NormalRange.Humidity.Max != normalRange.Humidity.Max
+13     )){
+14         measurementInterval = newConfig.MeasurementInterval;
+15         normalRange = newConfig.NormalRange;
+16 
+17         Console.WriteLine("Оновлено конфiгурацiю:");
+18         Console.WriteLine($"Новий iнтервал вимiрювань: {measurementInterval} с");
+19         Console.WriteLine($"Новий нормальний дiапазон: Температура ({normalRange.Temperature.Min}-{normalRange.Temperature.Max}), Вологiсть ({normalRange.Humidity.Min}-{normalRange.Humidity.Max})");
+20     }
+21 
+22     Thread.Sleep(measurementInterval * 1000);
+23 }
+24 
+25 static async Task<DeviceConfig?> SendConditions(string id, string jwt, Conditions conditions)
+26 {
+27     using var client = new HttpClient();
+28     client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwt);
+29 
+30     var payload = JsonConvert.SerializeObject(conditions);
+31     var content = new StringContent(payload, Encoding.UTF8, "application/json");
+32 
+33     var response = await client.PostAsync($"{conn}/admin/iot-devices/{id}/report", content);
+34 
+35     if (response.IsSuccessStatusCode)
+36     {
+37         var responseContent = await response.Content.ReadAsStringAsync();
+38         return JsonConvert.DeserializeObject<DeviceConfig>(responseContent);
+39     }
+40     else
+41     {
+42         Console.WriteLine("Помилка пiд час вiдправлення даних.");
+43         return null;
+44     }
+45 }
+
+
+ДОДАТОК Б
+Приклад отримання налаштувань вимірювання
+
+1 var (measurementInterval, normalRange) = await GetDeviceConfiguration(id, jwt);
+2 
+3 static async Task<(int measurementInterval, NormalRange normalRange)> GetDeviceConfiguration(string id, string jwt)
+4 {
+5     using var client = new HttpClient();
+6     client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwt);
+7 
+8     var response = await client.GetAsync($"{conn}/admin/iot-devices/{id}/config");
+9     if (!response.IsSuccessStatusCode)
+10     {
+11         throw new Exception("Не вдалося отримати конфiгурацiю пристрою.");
+12     }
+13 
+14     var responseContent = await response.Content.ReadAsStringAsync();
+15     var config = JsonConvert.DeserializeObject<DeviceConfig>(responseContent);
+16 
+17     return (config.MeasurementInterval, config.NormalRange);
+18 }
+
+
+ДОДАТОК В
+Приклад збереження налаштувань аутентифікації
+
+1 if (File.Exists(configFilePath))
+2 {
+3     var configFileContent = File.ReadAllText(configFilePath);
+4     var savedConfig = JsonConvert.DeserializeObject<DeviceCredentials>(configFileContent);
+5     id = savedConfig?.Id ?? string.Empty;
+6     jwt = savedConfig?.Jwt ?? string.Empty;
+7 }
+8 else
+9 {
+10     id = string.Empty;
+11     jwt = string.Empty;
+12 }
+13 
+14 while (string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(jwt) || !await VerifyDevice(id, jwt))
+15 {
+16     Console.Write("Введiть id пристрою: ");
+17     id = Console.ReadLine();
+18     Console.Write("Введiть JWT для початку роботи: ");
+19     jwt = Console.ReadLine();
+20 }
+21 
+22 Console.WriteLine("Починаeмо вимiрювання...");
+23 var credentials = new DeviceCredentials { Id = id, Jwt = jwt };
+24 File.WriteAllText(configFilePath, JsonConvert.SerializeObject(credentials));
